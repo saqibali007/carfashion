@@ -1,0 +1,133 @@
+{% extends 'base.html' %}
+{% block title %}{{ product.name }} — CarFashion{% endblock %}
+
+{% block content %}
+<div style="margin-bottom:1rem;">
+  <a href="{% url 'product_list' %}" style="color:var(--text2); font-size:.875rem;">← Back to Shop</a>
+</div>
+
+<div class="product-detail">
+  <!-- IMAGE -->
+  <div>
+    <div class="detail-img">
+      {% if product.image %}<img src="{{ product.image.url }}" alt="{{ product.name }}">
+      {% else %}
+        {% if "led" in product.name|lower or "light" in product.name|lower %}💡
+        {% elif "drl" in product.name|lower %}🔦
+        {% else %}🚗{% endif %}
+      {% endif %}
+    </div>
+  </div>
+
+  <!-- INFO -->
+  <div class="detail-info">
+    <div style="color:var(--accent); font-size:.85rem; text-transform:uppercase; letter-spacing:1px;">{{ product.category.name }}</div>
+    <h1>{{ product.name }}</h1>
+    
+    {% if avg_rating %}
+    <div style="display:flex; align-items:center; gap:8px; margin:.5rem 0;">
+      <span class="rating-stars">{% with avg_rating|floatformat:0 as stars %}{% for i in "12345" %}{% if forloop.counter <= stars|add:"0" %}★{% else %}☆{% endif %}{% endfor %}{% endwith %}</span>
+      <span style="color:var(--text2); font-size:.875rem;">({{ reviews|length }} review{{ reviews|length|pluralize }})</span>
+    </div>
+    {% endif %}
+
+    <div class="detail-price">₹{{ product.price }}</div>
+
+    <div class="detail-meta">
+      {% if product.brand %}
+      <span class="meta-badge">🏷 {{ product.brand }}</span>
+      {% endif %}
+      {% if product.in_stock %}
+        <span class="meta-badge" style="color:var(--green); border-color:var(--green);">✅ In Stock ({{ product.stock }} left)</span>
+      {% else %}
+        <span class="meta-badge" style="color:var(--accent); border-color:var(--accent);">❌ Out of Stock</span>
+      {% endif %}
+    </div>
+
+    <div style="color:var(--text2); margin-bottom:1.5rem; line-height:1.7;">{{ product.description }}</div>
+
+    {% if user.is_authenticated %}
+      {% if product.in_stock %}
+        <a href="{% url 'add_to_cart' product.id %}" class="btn btn-red" style="margin-bottom:1rem;">🛒 Add to Cart</a>
+      {% else %}
+        <button class="btn btn-ghost" disabled style="opacity:.5; margin-bottom:1rem;">Out of Stock</button>
+      {% endif %}
+    {% else %}
+      <a href="{% url 'login' %}" class="btn btn-red" style="margin-bottom:1rem;">Login to Buy</a>
+    {% endif %}
+
+    <a href="{% url 'home_service' %}" class="btn btn-ghost">🔧 Need Installation? Book Home Service</a>
+  </div>
+</div>
+
+<!-- REVIEWS SECTION -->
+<hr class="divider">
+<div class="reviews-section">
+  <h2 class="section-title" style="margin-bottom:1.5rem;">Customer <span>Reviews</span></h2>
+
+  {% if reviews %}
+    {% for review in reviews %}
+    <div class="review-card">
+      <div class="review-header">
+        <div>
+          <span class="reviewer-name">{{ review.user.first_name|default:review.user.username }}</span>
+          <span class="rating-stars" style="font-size:.9rem; margin-left:8px;">{% for i in "12345" %}{% if forloop.counter <= review.rating %}★{% else %}☆{% endif %}{% endfor %}</span>
+        </div>
+        <span class="review-date">{{ review.created_at|date:"d M Y" }}</span>
+      </div>
+      <p class="review-text">{{ review.comment }}</p>
+    </div>
+    {% endfor %}
+  {% else %}
+    <p style="color:var(--text2);">No reviews yet. Be the first to review!</p>
+  {% endif %}
+
+  <!-- WRITE REVIEW -->
+  {% if user.is_authenticated and not user_reviewed %}
+  <div class="form-card" style="margin-top:1.5rem;">
+    <h3 style="margin-bottom:1rem; font-size:1.1rem;">Write a Review</h3>
+    <form method="post">
+      {% csrf_token %}
+      <div class="form-group">
+        <label>Rating</label>
+        {{ review_form.rating }}
+      </div>
+      <div class="form-group">
+        <label>Your Review</label>
+        {{ review_form.comment }}
+      </div>
+      <button type="submit" class="btn btn-red">Submit Review</button>
+    </form>
+  </div>
+  {% elif user_reviewed %}
+    <p style="color:var(--text2); margin-top:1rem; font-size:.875rem;">✅ You've already reviewed this product.</p>
+  {% endif %}
+</div>
+
+<!-- RELATED PRODUCTS -->
+{% if related_products %}
+<hr class="divider">
+<div class="section-header">
+  <h2 class="section-title">Related <span>Products</span></h2>
+</div>
+<div class="product-grid">
+  {% for p in related_products %}
+  <div class="product-card">
+    <a href="{% url 'product_detail' p.slug %}">
+      <div class="product-img">{% if p.image %}<img src="{{ p.image.url }}" alt="{{ p.name }}">{% else %}🚗{% endif %}</div>
+    </a>
+    <div class="product-body">
+      <div class="product-name"><a href="{% url 'product_detail' p.slug %}">{{ p.name }}</a></div>
+      <span class="product-price">₹{{ p.price }}</span>
+    </div>
+    <div class="product-footer">
+      {% if p.in_stock and user.is_authenticated %}
+        <a href="{% url 'add_to_cart' p.id %}" class="btn btn-red btn-add">Add to Cart</a>
+      {% endif %}
+    </div>
+  </div>
+  {% endfor %}
+</div>
+{% endif %}
+
+{% endblock %}

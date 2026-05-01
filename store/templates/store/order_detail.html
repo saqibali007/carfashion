@@ -1,0 +1,65 @@
+{% extends 'base.html' %}
+{% block title %}Order #{{ order.order_number }} — CarFashion{% endblock %}
+
+{% block content %}
+<div style="margin-bottom:1rem;">
+  <a href="{% url 'order_list' %}" style="color:var(--text2); font-size:.875rem;">← Back to Orders</a>
+</div>
+
+<div class="order-detail-card">
+  <div class="order-header">
+    <div>
+      <h1 style="font-family:'Rajdhani',sans-serif; font-size:1.8rem;">Order <span style="color:var(--accent)">#{{ order.order_number }}</span></h1>
+      <div style="color:var(--text2); font-size:.875rem; margin-top:4px;">Placed on {{ order.created_at|date:"d F Y, g:i A" }}</div>
+    </div>
+    <span class="status-badge status-{{ order.status }}" style="font-size:.9rem; padding:6px 16px;">{{ order.get_status_display }}</span>
+  </div>
+
+  <!-- ITEMS -->
+  <h3 style="font-size:1rem; font-weight:600; margin-bottom:1rem;">Items Ordered</h3>
+  <table class="order-items-table">
+    <thead>
+      <tr>
+        <th>Product</th>
+        <th>Price</th>
+        <th>Qty</th>
+        <th style="text-align:right;">Subtotal</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for item in order.items.all %}
+      <tr>
+        <td style="font-weight:500;">{{ item.product_name }}</td>
+        <td style="color:var(--text2);">₹{{ item.price }}</td>
+        <td>{{ item.quantity }}</td>
+        <td style="text-align:right; font-weight:600; color:var(--gold);">₹{{ item.subtotal }}</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+
+  <!-- TOTAL -->
+  <div style="margin-top:1rem; padding-top:1rem; border-top:1px solid var(--border); display:flex; justify-content:flex-end; gap:2rem; align-items:center;">
+    <div style="color:var(--text2); font-size:.875rem;">Shipping: <span style="color:var(--green);">Free</span></div>
+    <div style="font-size:1.4rem; font-weight:700; color:var(--gold);">Total: ₹{{ order.total_amount }}</div>
+  </div>
+</div>
+
+<!-- SHIPPING INFO -->
+<div class="order-detail-card">
+  <h3 style="font-size:1rem; font-weight:600; margin-bottom:1rem;">📍 Shipping Address</h3>
+  <p style="color:var(--text2);">{{ order.shipping_address }}</p>
+  <p style="color:var(--text2); margin-top:4px;">📞 {{ order.phone }}</p>
+  {% if order.notes %}
+  <div style="margin-top:1rem; padding-top:1rem; border-top:1px solid var(--border);">
+    <div style="font-size:.85rem; color:var(--text2); margin-bottom:4px;">Notes:</div>
+    <p style="color:var(--text2);">{{ order.notes }}</p>
+  </div>
+  {% endif %}
+</div>
+
+<div style="display:flex; gap:1rem; flex-wrap:wrap;">
+  <a href="{% url 'product_list' %}" class="btn btn-ghost">Continue Shopping</a>
+  <a href="{% url 'home_service' %}" class="btn btn-ghost">🔧 Need Installation Help?</a>
+</div>
+{% endblock %}

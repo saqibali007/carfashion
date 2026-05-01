@@ -1,0 +1,92 @@
+{% extends 'base.html' %}
+{% block title %}Shop All Products — CarFashion{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <h1>🛒 Shop All <span style="color:var(--accent)">Products</span></h1>
+  <p style="color:var(--text2);">Premium car accessories delivered to your door</p>
+</div>
+
+<!-- FILTER BAR -->
+<form method="get" class="filter-bar">
+  <input type="text" name="q" value="{{ search_query|default:'' }}" placeholder="Search products, brands...">
+  <select name="sort" onchange="this.form.submit()">
+    <option value="newest" {% if sort_by == 'newest' %}selected{% endif %}>Newest First</option>
+    <option value="price_asc" {% if sort_by == 'price_asc' %}selected{% endif %}>Price: Low to High</option>
+    <option value="price_desc" {% if sort_by == 'price_desc' %}selected{% endif %}>Price: High to Low</option>
+  </select>
+  <button type="submit" class="btn btn-red">Search</button>
+  {% if search_query or selected_category %}
+  <a href="{% url 'product_list' %}" class="btn btn-ghost">Clear</a>
+  {% endif %}
+</form>
+
+<!-- CATEGORY PILLS -->
+<div class="cat-pills">
+  <a href="{% url 'product_list' %}" class="cat-pill {% if not selected_category %}active{% endif %}">All</a>
+  {% for category in categories %}
+  <a href="?category={{ category.slug }}{% if search_query %}&q={{ search_query }}{% endif %}" 
+     class="cat-pill {% if selected_category == category.slug %}active{% endif %}">
+    {{ category.name }}
+  </a>
+  {% endfor %}
+</div>
+
+<!-- PRODUCTS -->
+{% if products %}
+<div style="color:var(--text2); font-size:.875rem; margin-bottom:1rem;">
+  {{ products|length }} product{{ products|length|pluralize }} found
+</div>
+<div class="product-grid">
+  {% for product in products %}
+  <div class="product-card">
+    <a href="{% url 'product_detail' product.slug %}">
+      <div class="product-img">
+        {% if product.image %}<img src="{{ product.image.url }}" alt="{{ product.name }}">
+        {% else %}
+          {% if "led" in product.name|lower or "light" in product.name|lower %}💡
+          {% elif "drl" in product.name|lower %}🔦
+          {% elif "seat" in product.name|lower or "interior" in product.category.name|lower %}🪑
+          {% elif "wrap" in product.name|lower %}🎨
+          {% else %}🚗{% endif %}
+        {% endif %}
+      </div>
+    </a>
+    <div class="product-body">
+      <div class="product-category">{{ product.category.name }}</div>
+      <a href="{% url 'product_detail' product.slug %}">
+        <div class="product-name">{{ product.name }}</div>
+      </a>
+      {% if product.brand %}<div class="product-brand">{{ product.brand }}</div>{% endif %}
+      <div style="margin-top:auto; padding-top:8px;">
+        <span class="product-price">₹{{ product.price }}</span>
+        {% if product.in_stock %}
+          <span class="product-stock-badge in-stock">In Stock</span>
+        {% else %}
+          <span class="product-stock-badge out-of-stock">Out of Stock</span>
+        {% endif %}
+      </div>
+    </div>
+    <div class="product-footer">
+      {% if user.is_authenticated %}
+        {% if product.in_stock %}
+          <a href="{% url 'add_to_cart' product.id %}" class="btn btn-red btn-add">Add to Cart</a>
+        {% else %}
+          <button class="btn btn-ghost btn-add" disabled style="opacity:.5;">Out of Stock</button>
+        {% endif %}
+      {% else %}
+        <a href="{% url 'login' %}" class="btn btn-ghost btn-add">Login to Buy</a>
+      {% endif %}
+    </div>
+  </div>
+  {% endfor %}
+</div>
+{% else %}
+<div class="empty-state">
+  <div class="empty-icon">🔍</div>
+  <h3>No products found</h3>
+  <p>Try a different search or category filter.</p>
+  <a href="{% url 'product_list' %}" class="btn btn-red" style="margin-top:1rem;">Clear Filters</a>
+</div>
+{% endif %}
+{% endblock %}

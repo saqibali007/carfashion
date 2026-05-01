@@ -1,0 +1,76 @@
+{% extends 'base.html' %}
+{% block title %}Cart — CarFashion{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <h1>🛒 Your <span style="color:var(--accent)">Cart</span></h1>
+</div>
+
+{% if cart.items.all %}
+<div class="cart-layout">
+  <!-- CART ITEMS -->
+  <div>
+    <div class="cart-items">
+      {% for item in cart.items.all %}
+      <div class="cart-item">
+        <div class="cart-item-img">
+          {% if item.product.image %}<img src="{{ item.product.image.url }}" alt="{{ item.product.name }}">
+          {% else %}🚗{% endif %}
+        </div>
+        <div>
+          <div class="cart-item-name">{{ item.product.name }}</div>
+          <div style="color:var(--text2); font-size:.8rem;">{{ item.product.category.name }}</div>
+          <div class="cart-item-price">₹{{ item.product.price }} each</div>
+          <form method="post" action="{% url 'update_cart' item.id %}" class="qty-control">
+            {% csrf_token %}
+            <button type="submit" name="quantity" value="{{ item.quantity|add:'-1' }}" class="qty-btn">−</button>
+            <span style="font-weight:600; min-width:20px; text-align:center;">{{ item.quantity }}</span>
+            <button type="submit" name="quantity" value="{{ item.quantity|add:'1' }}" class="qty-btn">+</button>
+          </form>
+        </div>
+        <div style="text-align:right;">
+          <div style="font-size:1.1rem; font-weight:700; color:var(--gold);">₹{{ item.subtotal }}</div>
+          <a href="{% url 'remove_from_cart' item.id %}" style="color:var(--accent); font-size:.8rem; margin-top:8px; display:block;">Remove</a>
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+    <div style="margin-top:1rem;">
+      <a href="{% url 'product_list' %}" style="color:var(--text2); font-size:.875rem;">← Continue Shopping</a>
+    </div>
+  </div>
+
+  <!-- SUMMARY -->
+  <div class="cart-summary">
+    <h3 style="font-size:1.1rem; margin-bottom:1rem; font-weight:600;">Order Summary</h3>
+    {% for item in cart.items.all %}
+    <div class="summary-row">
+      <span>{{ item.product.name }} ×{{ item.quantity }}</span>
+      <span>₹{{ item.subtotal }}</span>
+    </div>
+    {% endfor %}
+    <hr class="divider" style="margin:12px 0;">
+    <div class="summary-row">
+      <span>Shipping</span>
+      <span style="color:var(--green);">Free</span>
+    </div>
+    <div class="summary-total">
+      <div class="summary-row" style="font-size:1.3rem; font-weight:700; color:var(--gold);">
+        <span>Total</span>
+        <span>₹{{ cart.total }}</span>
+      </div>
+    </div>
+    <a href="{% url 'checkout' %}" class="btn btn-red" style="width:100%; justify-content:center; margin-top:1rem;">Proceed to Checkout →</a>
+  </div>
+</div>
+
+{% else %}
+<div class="empty-state">
+  <div class="empty-icon">🛒</div>
+  <h3>Your cart is empty</h3>
+  <p>Add some awesome car accessories to your cart!</p>
+  <a href="{% url 'product_list' %}" class="btn btn-red" style="margin-top:1rem;">Start Shopping</a>
+</div>
+{% endif %}
+
+{% endblock %}
